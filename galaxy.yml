@@ -1,0 +1,19 @@
+namespace: josesolis2201
+name: rancher
+version: 0.1.0
+readme: README.md
+authors:
+  - Jose Solis <josesolisrosales@gmail.com>
+
+description: Ansible modules for rancher
+license:
+  - MIT
+
+tags:
+  - rancher
+  - kubernetes
+
+dependencies: {}
+repository: https://github.com/josesolis2201/rancher-ansible-modules
+issues: https://github.com/josesolis2201/rancher-ansible-modules/issues
+
