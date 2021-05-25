@@ -1,6 +1,6 @@
 namespace: josesolis2201
 name: rancher
-version: 0.1.4
+version: 0.1.5
 readme: README.md
 authors:
   - Jose Solis <josesolisrosales@gmail.com>

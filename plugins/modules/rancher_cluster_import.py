@@ -115,7 +115,10 @@ def rancher_cluster_present(data):
         check_cluster_state = get_cluster_state(api_url, api_token, cluster_name)
         if not check_cluster_state:
             import_command = create_cluster(api_url, api_token, cluster_name)
+            os.system(import_command)
             has_changed = True
+            is_error, meta = cluster_verification(api_url, api_token, cluster_name)
+            return (is_error,has_changed,meta)
         else:
             import_command = update_cluster(api_url, api_token, cluster_name)
             os.system(import_command)
