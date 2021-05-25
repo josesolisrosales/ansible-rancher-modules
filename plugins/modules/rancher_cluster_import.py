@@ -60,7 +60,6 @@ def update_cluster(api_url, api_token, cluster_name):
 
     cluster_id = id_response_json["data"][0]["id"]
     registration_token_url ="{}{}{}{}".format(api_url, "/v3/cluster/", cluster_id, "/clusterregistrationtoken")
-    registration_data = '{"type": "clusterRegistrationToken", "clusterId": "%s"}' % (cluster_id)
     command_response = requests.get(registration_token_url, auth=BearerAuth(api_token))
     command_response_json = command_response.json()
 
@@ -76,11 +75,11 @@ def cluster_verification(api_url, api_token, cluster_name):
     timeout = time.time() + 60*5
     is_error = False
     meta = "Cluster registration complete"
-    while cluster_status != "pending":
+    while cluster_status == "pending":
         response = requests.get(cluster_info_url, auth=BearerAuth(api_token))
         response_json = response.json()
         cluster_status = bool(response_json["data"][0]["state"])
-        if time.time() > timeout:
+        if time.time() > timeout or cluster_status:
             is_error=True
             meta = "ERROR: Cluster registration did not complete. Please check rancher logs"
             break
