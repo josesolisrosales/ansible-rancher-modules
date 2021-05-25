@@ -14,14 +14,18 @@ class BearerAuth(requests.auth.AuthBase):
 
 def get_api_token(api_url, rancher_admin_user, rancher_admin_password):
     login_url = "{}{}".format(api_url, "/v3-public/localProviders/local?action=login")
-    headers = {
-        'content-type': 'application/json'
-    }
     data = '{"username": "%s", "password": "%s"}' % (rancher_admin_user, rancher_admin_password)
-    response = requests.post(login_url, headers=headers, data=data, verify=False)
-    response_json = response.json()
-    api_token = response_json["token"]
-    return(api_token)
+    response = requests.post(login_url, data=data)
+    if response.status_code == 201:
+        response_json = response.json()
+        api_token = response_json["token"]
+        return(api_token)
+    elif response.status_code == 401:
+        api_token = "error"
+        return(api_token)
+    else:
+        api_token = "Unexpected Error"
+        return(api_token)
 
 def get_cluster_state(api_url, api_token, cluster_name):
     cluster_info_url = "{}{}?name={}".format(api_url, "/v3/cluster", cluster_name)
@@ -97,18 +101,26 @@ def rancher_cluster_present(data):
     rancher_admin_user = data['rancher_admin_user']
 
     api_token = get_api_token(api_url, rancher_admin_user, rancher_admin_password)
-    check_cluster_state = get_cluster_state(api_url, api_token, cluster_name)
-    if not check_cluster_state:
-        import_command = create_cluster(api_url, api_token, cluster_name)
-        has_changed = True
+    if api_token == "error":
+        has_changed = False
+        is_error = True
+        meta = {"error": "Unauthorized response from rancher server"}
+        return(is_error,has_changed,meta)
+    elif api_token == "Unexpected Error":
+        has_changed = False
+        is_error = True
+        meta = {"error": "Unexpected response from rancher server"}
+        return(is_error,has_changed,meta)
     else:
-        import_command = update_cluster(api_url, api_token, cluster_name)
-
-    os.system(import_command)
-
-    is_error, meta = cluster_verification(api_url, api_token, cluster_name)
-
-    return (is_error,has_changed,meta)
+        check_cluster_state = get_cluster_state(api_url, api_token, cluster_name)
+        if not check_cluster_state:
+            import_command = create_cluster(api_url, api_token, cluster_name)
+            has_changed = True
+        else:
+            import_command = update_cluster(api_url, api_token, cluster_name)
+            os.system(import_command)
+            is_error, meta = cluster_verification(api_url, api_token, cluster_name)
+            return (is_error,has_changed,meta)
 
 def rancher_cluster_absent(data):
     has_changed = False
